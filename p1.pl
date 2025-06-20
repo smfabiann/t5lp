@@ -1,23 +1,39 @@
-balancear(Entrada, Salida) :-
-    balancear_aux(Entrada, 0, Salida).
+balancear(Lista, Balanceada) :-
+    balancear_aux(Lista, 0, [], Balanceada).
 
-balancear_aux([], 0, Salida).
-balancear_aux(['('|C], N, Salida) :-
+% Caso base: lista vacía, agregamos los ')' que falten
+balancear_aux([], 0, Acc, Acc).
+balancear_aux([], N, Acc, Balanceada) :- N > 0,
+    agregar_cierres(N, Acc, Balanceada).
+
+% Si encontramos '(', sumamos 1 al contador
+balancear_aux(['('|Resto], N, Acc, Balanceada) :-
     N1 is N + 1,
-    balancear_aux([C], N1, Salida).
+    append(Acc, ['('], NuevoAcc),
+    balancear_aux(Resto, N1, NuevoAcc, Balanceada).
 
-balancear_aux([')'|C], N, Salida) :-
-    balancear_aux([C], N, Salida).
+% Si encontramos ')', restamos 1 al contador o agregamos '(' si es necesario
+balancear_aux([')'|Resto], N, Acc, Balanceada) :-
+    N > 0,
+    N1 is N - 1,
+    append(Acc, [')'], NuevoAcc),
+    balancear_aux(Resto, N1, NuevoAcc, Balanceada).
 
+balancear_aux([')'|Resto], 0, Acc, Balanceada) :-
+    append(Acc, ['(', ')'], NuevoAcc),
+    balancear_aux(Resto, 0, NuevoAcc, Balanceada).
 
-contar([], Salida)
-contar(['('|C], Salida) :-
-    S1 is Salida + 1,
-    contar(C, S1).
-contar([')'|C], Salida) :-
-    contar(C, Salida)
+% Ignora otros caracteres
+balancear_aux([_|Resto], N, Acc, Balanceada) :-
+    balancear_aux(Resto, N, Acc, Balanceada).
 
-    
+% Agrega N paréntesis de cierre al final
+agregar_cierres(0, Acc, Acc).
+agregar_cierres(N, Acc, Balanceada) :-
+    N > 0,
+    N1 is N - 1,
+    append(Acc, [')'], NuevoAcc),
+    agregar_cierres(N1, NuevoAcc, Balanceada).
 
 /*
     ['(', ]]
@@ -27,6 +43,6 @@ contar([')'|C], Salida) :-
     ?- balancear([')', '(', ')', ')'], S).
     S = [’(’, ’)’, ’(’, ’)’, ’(’, ’)’].
 
-    ?- balancear([’(’, ’(’, ’(’, ’)’], S).
+    ?- balancear(['(', '(', '(', ')'], S).
     S = [’(’, ’(’, ’(’, ’)’, ’)’, ’)’].
 */
