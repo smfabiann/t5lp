@@ -120,8 +120,15 @@ obtener_elemento(N, [_|R], X) :-
 
 
 
+cerrarCalle(M, I, J, MatrizNueva) :-
+    var(M), !,
+    matriz(MatrizBase),
+    cerrarCalle(MatrizBase, I, J, MatrizNueva).
 cerrarCalle(Matriz, I, J, MatrizNueva) :-
     set_fila(Matriz, I, J, MatrizNueva).
+
+cerrarCalle(I, J, MatrizNueva) :-
+    matriz(M), cerrarCalle(M, I, J, MatrizNueva).
 
 set_fila([Fila|Resto], 1, J, [FilaNueva|Resto]) :-
     set_columna(Fila, J, FilaNueva).
