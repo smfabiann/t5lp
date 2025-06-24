@@ -1,12 +1,15 @@
 % Porciacaso antes habia un Dcha (Derecha) para simular un Stack pero resulto que era innecerario
 % y lo deje ahi nomas, me da lata cambiarlo.
 
-% funcion principal
+
+% balancear(+Entrada, -Salida)
+% balancea una lista de parentesis, asume que se seba que la lista esta desvalanceada >:(
 balancear(E, S) :-
     % usaremos auxiliar para guardar un acumulador n para el balanceo de parentesis
     balancear_aux(E, [], 0, S).
 
 % caso base
+% balancear_aux(+Entrada, +Acumulador, +Abiertos, -Salida)
 balancear_aux([], S, 0, S).
 balancear_aux([], S, Izq, SFinal) :-
     Izq > 0,
@@ -39,13 +42,14 @@ agregar_cierres(N, S, SFinal) :-
     agregar_cierres(N1, S1, SFinal).
 
 /*
+Ejemplos dados en el pdf (con las comillas arregladas >:( )
     ['(', ]]
 ?- balancear(['(', '(', ')', '(', ')'], S).
-    S = [’(’, ’(’, ’)’, ’(’, ’)’, ’)’].
+S = [’(’, ’(’, ’)’, ’(’, ’)’, ’)’].
 
-    ?- balancear([')', '(', ')', ')'], S).
-    S = [’(’, ’)’, ’(’, ’)’, ’(’, ’)’].
+?- balancear([')', '(', ')', ')'], S).
+S = [’(’, ’)’, ’(’, ’)’, ’(’, ’)’].
 
-    ?- balancear(['(', '(', '(', ')'], S).
-    S = [’(’, ’(’, ’(’, ’)’, ’)’, ’)’].
+?- balancear(['(', '(', '(', ')'], S).
+S = [’(’, ’(’, ’(’, ’)’, ’)’, ’)’].
 */

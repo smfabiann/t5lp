@@ -28,6 +28,15 @@ matriz([
 10| 0 10 0 0 6 0  0 4 1  0
 */
 
+
+% tiempoRuta(+Matriz, +Camino, -TiempoTotal)
+/*
+Entrada:
+    Matriz: matriz de adyacencia que representa un grafo
+    Camino: lista de nodos en el que se busca el tiempo total para recorrerlos
+Salida:
+    TiempoTotal: el tiempo que se demora recorrer el Camino 
+*/
 % primero hacemos el tiempoRuta ya que asi sera mas facil sacar rutaOptima
 tiempoRuta(_, [_], 0).
 tiempoRuta(M, [A,B|Resto], TiempoTotal) :-
@@ -44,12 +53,12 @@ obtener_fila([_|Resto], N, Fila) :-
     N1 is N - 1,
     obtener_fila(Resto, N1, Fila).
 
-% Obtiene el elemento N (base 1) de la lista.
+% obtiene el un elemento i (indice) de una lista
 obtener_elemento([Elem|_], 1, Elem).
-obtener_elemento([_|Resto], N, Elem) :-
-    N > 1,
-    N1 is N - 1,
-    obtener_elemento(Resto, N1, Elem).
+obtener_elemento([_|Resto], I, Elem) :-
+    I > 1,
+    I1 is I - 1,
+    obtener_elemento(Resto, I1, Elem).
 
 
 /*
@@ -70,27 +79,44 @@ false.
 
 
 % rutaOptima(+Matriz, +Origen, +Destino, -Camino, -Tiempo)
-rutaOptima(Matriz, Origen, Destino, CaminoOptimo, TiempoOptimo) :-
-    findall(Camino, camino_simple(Matriz, Origen, Destino, [Origen], Camino), Caminos),
+/*
+Entrada:
+    Matriz: matriz de adyacencia que representa un grafo
+    Origen: nodo de inicio, donde se parte la busqueda del camino mas optimo
+    Destino: nodo final, donde termina el camino
+Salida:
+    Camino: retorna la lista de nodos del camino mas optimo
+Tiempo: tiempo que se demora recorrer el camino (sumatoria del peso de las aristas)
+*/
+rutaOptima(M, O, D, CaminoFinal, TiempoFinal) :-
+    findall(Camino, camino_simple(M, O, D, [O], Camino), Caminos),
     findall(Tiempo-CaminoR, (
         member(CaminoR, Caminos),
-        tiempoRuta(Matriz, CaminoR, Tiempo)
+        tiempoRuta(M, CaminoR, Tiempo)
     ), Pares),
-    sort(Pares, [TiempoOptimo-CaminoOptimo|_]).
+    sort(Pares, [TiempoFinal-CaminoFinal|_]).
+
 
 % camino_simple(+Matriz, +Actual, +Destino, +Visitados, -Camino)
-% Genera caminos simples (sin ciclos) de Actual a Destino.
+% ve los caminos simples existentes desde destino a actual
+% me dio lata comentar el codigo como lo hice antes asi que a partir de ahora se hara de forma mas simple
 camino_simple(_, Destino, Destino, Visitados, Camino) :-
     reverse(Visitados, Camino).
 camino_simple(Matriz, Actual, Destino, Visitados, Camino) :-
     obtener_fila(Matriz, Actual, Fila),
     vecinos_todos(Fila, 1, Vecinos),
     member(Vecino, Vecinos),
-    \+ member(Vecino, Visitados),
+    not_member(Vecino, Visitados), % necesitamos sabes si el elemento no es parte de la lista
     camino_simple(Matriz, Vecino, Destino, [Vecino|Visitados], Camino).
 
+% not_member(+Elem, +Lista): verdadero si no esta en la lista
+not_member(_, []).
+not_member(Elem, [H|T]) :-
+    Elem \= H,  % si lo hago de otra forma da warning, asi que se queda si
+    not_member(Elem, T).
+
 % vecinos_todos(+Fila, +Indice, -ListaVecinos)
-% Devuelve una lista con todos los índices de vecinos alcanzables (peso > 0).
+% retorna una lista con todos los nodos vecinos (alcanzables/que exista un camino/ peso > 0)
 vecinos_todos([], _,
     []).
 vecinos_todos([Peso|Resto], Indice, [Indice|VecinosResto]) :-
@@ -117,6 +143,30 @@ T = 10.
 */
 
 
+% cerrarCalle(+Matriz, +I, +J, -MatrizNueva)
+% devuelve una matriz (MatrizNueva) que tiene corado las aristas que inen el nodo I y el J.
+cerrarCalle(M, I, J, MNueva) :-
+    set_fila(M, I, J, MNueva).
+
+% set_fila(+Matriz, +I, +J, -MatrizNueva)
+% reemplaza el nodo de una fila I y reemplaza el valor de la columna J por 0
+% devuelve una matriz con ese cambio
+set_fila([Fila|T], 1, J, [FilaNueva|T]) :-
+    set_columna(Fila, J, FilaNueva).
+set_fila([Fila|T], I, J, [Fila|TNueva]) :-
+    I > 1,
+    I1 is I - 1,
+    set_fila(T, I1, J, TNueva).
+
+% set_columna(+Fila, +J, -FilaNueva)
+% reemplaza el nodo de una fila I y reemplaza el valor de la columna J por 0
+% la nueva fila con el cambio nuevo
+set_columna([_|T], 1, [0|T]).
+set_columna([X|T], J, [X|TNueva]) :-
+    J > 1,
+    J1 is J - 1,
+    set_columna(T, J1, TNueva).
+
 
 /*
 matriz(M), rutaOptima(M, 1, 10, Camino1, Tiempo1).
@@ -136,47 +186,26 @@ Tiempo4 = 12.
 
 
 
-% Devuelve una nueva matriz con la arista (I,J) puesta en 0, el resto igual.
-cerrarCalle(Matriz, I, J, MatrizNueva) :-
-    set_fila(Matriz, I, J, MatrizNueva).
 
-% set_fila(+Matriz, +I, +J, -MatrizNueva)
-set_fila([Fila|Resto], 1, J, [FilaNueva|Resto]) :-
-    set_columna(Fila, J, FilaNueva).
-set_fila([Fila|Resto], I, J, [Fila|RestoNueva]) :-
-    I > 1,
-    I1 is I - 1,
-    set_fila(Resto, I1, J, RestoNueva).
-
-% set_columna(+Fila, +J, -FilaNueva)
-set_columna([_|Resto], 1, [0|Resto]).
-set_columna([X|Resto], J, [X|RestoNueva]) :-
-    J > 1,
-    J1 is J - 1,
-    set_columna(Resto, J1, RestoNueva).
-
-
-
-% impactoCorte(+Matriz, +Origen, +Destino, -Retraso)
-% Calcula el incremento en el tiempo de la ruta óptima al eliminar cualquier arista usada en la ruta óptima original.
-impactoCorte(Matriz, Origen, Destino, Retraso) :-
-    rutaOptima(Matriz, Origen, Destino, Camino, TiempoOriginal),
-    % Busca la primera arista usada en la ruta óptima que conecta Origen con Destino
-    arista_a_cortar(Camino, Origen, Destino, I, J),
-    cerrarCalle(Matriz, I, J, MatrizCortada),
-    rutaOptima(MatrizCortada, Origen, Destino, _, TiempoNuevo),
+% impactoCorte(+M, +Origen, +Destino, -Retraso)
+% retorna el impacto en tiempo que afectaria cortar una arista en un camino entre nodos Origen y Destino
+impactoCorte(M, O, D, Retraso) :-
+    rutaOptima(M, O, D, Camino, TiempoOriginal),
+    arista_a_cortar(Camino, O, D, I, J),
+    cerrarCalle(M, I, J, MCortada),
+    rutaOptima(MCortada, O, D, _, TiempoNuevo),
     Retraso is TiempoNuevo - TiempoOriginal.
 
-% arista_a_cortar(+Camino, +Origen, +Destino, -I, -J)
-% Busca la primera arista (I,J) usada en el camino de Origen a Destino.
-arista_a_cortar([I,J|_], Origen, _, I, J) :- I = Origen.
-arista_a_cortar([_|Resto], Origen, Destino, I, J) :-
-    arista_a_cortar(Resto, Origen, Destino, I, J).
+% arista_a_cortar(+Camino, +O, +D, -I, -J)
+% en el caso que la arista de corte no sea vecina, se cortara la mas cercana del camino
+% corta la arista entre los nodos I y J
+arista_a_cortar([I,J|_], O, _, I, J) :- I = O.
+arista_a_cortar([_|Resto], O, D, I, J) :-
+    arista_a_cortar(Resto, O, D, I, J).
 
 /*
 matriz(M), impactoCorte(M, 1, 10, Retraso).
 Retraso = 4.
-
 matriz(M), impactoCorte(M, 2, 6, Retraso).
 Retraso = 2.
 */
