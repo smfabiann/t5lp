@@ -1,5 +1,5 @@
 Nombre: Fabian San Martin
-Rol: 2023046504-7
+Rol: 202304650-7
 
 IMPORTANTE:
     Este codigo fue hecho en Windows 11. Cualquier intento de compilar/andar este codigo
@@ -50,4 +50,4 @@ Intrucciones:
             T = 5
         '''
         Solo pegar " matriz(M), tiempoRuta(M, [1,7], T). " en la consola para las preguntas, sin el "?-" sino da error.
-        
+
